@@ -1,0 +1,12 @@
+#!/bin/bash
+
+count=$1
+
+mkdir -p ~/.webxfer/keys
+
+for x in `seq 1 $count`; do
+    random=`cat /dev/urandom | head -n8`
+    hash=`echo "$user:$random" | md5sum | sed -ne "s/^\(.*\) -$/\1/pg"`
+    echo $hash
+    touch ~/.webxfer/keys/$hash
+done

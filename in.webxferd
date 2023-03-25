@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# webxferd.conf must define
+#   owner=EMAIL-ADDRESS
+
+source /etc/webxferd.conf
+
+error ()
+{
+    mail --subject="Invalid access to in.webxferd" $owner <<EOF
+An invalid attempt to access the in.webxferd was made.
+Below is the full message that the daemon received.
+
+HTTP request:
+
+$request
+
+Error message:
+
+$@
+EOF
+    exit
+}
+
+# Save the HTTP request header so we can use it later.
+read request
+
+# Skip past the remainder of the header.
+while :; do
+    read header
+    [ "$header" == $'\r' ] && break;
+done
+
+echo -e "HTTP/1.1 200 OK\r"
+echo -e "Content-Type: text\r"
+echo -e "\r"
+
+url=`echo "$request" | sed -ne "s/^\(POST\|GET\) \/\(.*\) .*$/\2/pg"`
+# URL format is `USER:ARGUMENT:PASSWORD', where
+# USER, ARGUMENT, PASSWORD := [a-zA-Z0-9]*
+urlregexp="^\([a-z0-9]*\):\([a-z0-9]*\):\([a-z0-9]*\)$"
+user=`echo "$url" | sed -ne "s/$urlregexp/\1/pg"`
+argument=`echo "$url" | sed -ne "s/$urlregexp/\2/pg"`
+password=`echo "$url" | sed -ne "s/$urlregexp/\3/pg"`
+
+if [ -z "$user" ]; then
+    error "Access attempted with empty/incorrect user"
+fi
+
+if [ -z "$password" ]; then
+    error "Access attempted with empty password"
+fi
+
+userdir=`getent passwd $user | awk -F: '{print $6}'`
+if [ -z "$userdir" ]; then
+    error "Access attempted with invalid user"
+fi
+
+passwddir=$userdir/.webxfer/keys
+if [ ! -f "$passwddir/$password" ]; then
+    error "Access attempted with invalid password"
+fi
+rm $passwddir/$password
+
+# The action script gets two arguments, first one is the users
+# password directory, the second is the argument supplied by the user
+# (this can be empty).
+exec su -c "$userdir/.webxfer/action $argument" $user

@@ -1,0 +1,12 @@
+webxfer - HTTP script execution
+
+To setup webxfer one needs to add the following line to
+/etc/inetd.conf:
+
+  webxferd stream tcp nowait root /PLACE/OF/in.webxferd in.webxferd
+
+/etc/services should contain something like (assuming one wishes to
+use port 9876 for all communication):
+
+  webxferd		9876/tcp
+  webxferd		9876/udp

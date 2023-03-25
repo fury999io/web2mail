@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+  <script type="text/javascript">
+    function updateAction () {
+    var action = document.getElementById('form').action
+    + document.getElementById ('user').value
+    + ":" + document.getElementById ('argument').value
+    + ":" + document.getElementById ('hash').value;
+    document.getElementById ('form').action = action;
+    document.getElementById ('form2').action = action;
+    }
+  </script>
+  
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>webxferd</title>
+  </head>
+
+  <body>
+    User: <input id="user" name="" title="User" value=""><br>
+    Argument: <input id="argument" name="" title="Argument" value=""><br>
+    Hash: <input id="hash" name="" title="Hash" value=""><br>
+    
+    <form id="form" action="http://localhost:9876/" method="get"
+          onsubmit="return updateAction()">
+      <input type=submit value="Download">
+    </form>
+    
+    <form id="form2" action="http://localhost:9876/" method="post"
+          enctype="multipart/form-data"
+          onsubmit="return updateAction()">
+      <input name="file" id="file" type="file">
+      <input type=submit value="Upload">
+    </form>
+  </body>
+</html>
